@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
       lang="en"
       suppressHydrationWarning
     >
-      <body className={`{inter.className}`}><ThemeProvider
+      <body className={`${inter.className}`}><ThemeProvider
             attribute="class"
             defaultTheme="dark"
             enableSystem
