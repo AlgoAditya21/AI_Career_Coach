@@ -1,10 +1,13 @@
 import React from 'react'
+import {industries} from "@/data/industries"
+import OnboardingForm from "./_components/onboarding-form";
 
-const OnboardingPage = () => {
+
+const OnboardingPage =async () => {
   return (
-    <div>
-      OnboardingPage
-    </div>
+    <main>
+      <OnboardingForm industries={industries}/>
+    </main>
   )
 }
 

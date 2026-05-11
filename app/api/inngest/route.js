@@ -1,14 +1,10 @@
-import {inngest} from '@/lib/inngest/client'
-import { helloworld } from '@/lib/inngest/functions'
-import {serve} from 'inngest/next'
+import { serve } from "inngest/next";
 
-const handler = serve({
-    client:inngest,
-    functions:[
-        helloworld
-    ],
-})
+import { inngest } from "@/lib/inngest/client";
+import { generateIndustryInsights } from "@/lib/inngest/functions";
 
-export const GET = handler
-export const POST = handler
-export const PUT = handler
+export const { GET, POST, PUT } = serve({
+  client: inngest,
+  functions: [generateIndustryInsights],
+});
+

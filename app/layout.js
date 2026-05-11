@@ -1,6 +1,6 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
+import ThemeProvider from "@/components/theme-provider-client";
 import Header from "@/components/header";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
@@ -17,9 +17,11 @@ export default function RootLayout({ children }) {
   <ClerkProvider appearance={{baseTheme:dark}}>
     <html
       lang="en"
+      className="dark"
       suppressHydrationWarning
     >
-      <body className={`${inter.className}`}><ThemeProvider
+      <body className={`${inter.className}`} suppressHydrationWarning>
+        <ThemeProvider
             attribute="class"
             defaultTheme="dark"
             enableSystem
