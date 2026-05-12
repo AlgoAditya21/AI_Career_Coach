@@ -2,10 +2,9 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+const groq = new Groq();
 
 const fallbackQuizQuestions = [
   {
@@ -121,8 +120,8 @@ export async function generateQuiz() {
   });
   if (!user) throw new Error("User not found");
 
-  if (!process.env.GEMINI_API_KEY) {
-    console.warn("GEMINI_API_KEY is not set, using fallback quiz questions.");
+  if (!process.env.GROQ_API_KEY) {
+    console.warn("GROQ_API_KEY is not set, using fallback quiz questions.");
     return getFallbackQuiz();
   }
 
@@ -150,9 +149,19 @@ export async function generateQuiz() {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = await response.text();
+    const result = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert technical interviewer. You must return ONLY raw JSON, with no markdown formatting or additional text.",
+        },
+        { role: "user", content: prompt },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.8,
+    });
+    const text = result.choices[0].message?.content || "";
     const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
     const quiz = JSON.parse(cleanedText);
 
@@ -212,9 +221,12 @@ export async function saveQuizResult(questions, answers, score) {
     `;
 
     try {
-      const tipResult = await model.generateContent(improvementPrompt);
+      const tipResult = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        messages: [{ role: "user", content: improvementPrompt }],
+      });
 
-      improvementTip = tipResult.response.text().trim();
+      improvementTip = tipResult.choices[0].message?.content?.trim() || "";
       console.log(improvementTip);
     } catch (error) {
       console.error("Error generating improvement tip:", error);

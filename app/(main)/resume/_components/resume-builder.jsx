@@ -62,38 +62,38 @@ export default function ResumeBuilder({ initialContent }) {
     }
   }, [saveResult, saveError, isSaving]);
 
-  const getContactMarkdown = () => {
-    const { contactInfo } = formValues;
-    const parts = [];
-    if (contactInfo.email) parts.push(`📧 ${contactInfo.email}`);
-    if (contactInfo.mobile) parts.push(`📱 ${contactInfo.mobile}`);
-    if (contactInfo.linkedin)
+  const getContactMarkdown=()=>{
+    const {contactInfo}=formValues;
+    const parts=[];
+    if(contactInfo.email) parts.push(`📧 ${contactInfo.email}`);
+    if(contactInfo.mobile) parts.push(`📱 ${contactInfo.mobile}`);
+    if(contactInfo.linkedin)
       parts.push(`💼 [LinkedIn](${contactInfo.linkedin})`);
-    if (contactInfo.twitter) parts.push(`🐦 [Twitter](${contactInfo.twitter})`);
+    if(contactInfo.twitter) parts.push(`🐦 [Twitter](${contactInfo.twitter})`);
 
-    return parts.length > 0
+    return parts.length>0
       ? `## <div align="center">${user.fullName}</div>
         \n\n<div align="center">\n\n${parts.join(" | ")}\n\n</div>`
       : "";
   };
 
-  const getCombinedContent = () => {
-    const { summary, skills, experience, education, projects } = formValues;
-    return [
+  const getCombinedContent=()=>{
+    const {summary,skills,experience,education,projects}=formValues;
+    return[
       getContactMarkdown(),
       summary && `## Professional Summary\n\n${summary}`,
       skills && `## Skills\n\n${skills}`,
-      entriesToMarkdown(experience, "Work Experience"),
-      entriesToMarkdown(education, "Education"),
-      entriesToMarkdown(projects, "Projects"),
+      entriesToMarkdown(experience,"Work Experience"),
+      entriesToMarkdown(education,"Education"),
+      entriesToMarkdown(projects,"Projects"),
     ]
       .filter(Boolean)
       .join("\n\n");
   };
 
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGenerating,setIsGenerating]=useState(false);
 
-  const generatePDF = async () => {
+  const generatePDF=async()=>{
     setIsGenerating(true);
     try {
       const element = document.getElementById("resume-pdf");
@@ -216,18 +216,8 @@ export default function ResumeBuilder({ initialContent }) {
             {/* Summary */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Professional Summary</h3>
-              <Controller
-                name="summary"
-                control={control}
-                render={({ field }) => (
-                  <Textarea
-                    {...field}
-                    className="h-32"
-                    placeholder="Write a compelling professional summary..."
-                    error={errors.summary}
-                  />
-                )}
-              />
+              <Controller name="summary" control={control} render={({ field }) => (
+                  <Textarea {...field} className="h-32" placeholder="Write a compelling professional summary..." error={errors.summary}/> )}/>
               {errors.summary && (
                 <p className="text-sm text-red-500">{errors.summary.message}</p>
               )}
@@ -236,16 +226,8 @@ export default function ResumeBuilder({ initialContent }) {
             {/* Skills */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Skills</h3>
-              <Controller
-                name="skills"
-                control={control}
-                render={({ field }) => (
-                  <Textarea
-                    {...field}
-                    className="h-32"
-                    placeholder="List your key skills..."
-                    error={errors.skills}
-                  />
+              <Controller name="skills" control={control} render={({ field }) => (
+                  <Textarea {...field} className="h-32" placeholder="List your key skills..." error={errors.skills}/>
                 )}
               />
               {errors.skills && (
@@ -256,63 +238,36 @@ export default function ResumeBuilder({ initialContent }) {
             {/* Experience */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Work Experience</h3>
-              <Controller
-                name="experience"
-                control={control}
-                render={({ field }) => (
-                  <EntryForm
-                    type="Experience"
-                    entries={field.value}
-                    onChange={field.onChange}
-                  />
+              <Controller name="experience" control={control} render={({ field }) => (
+                  <EntryForm type="Experience" entries={field.value} onChange={field.onChange}/>
                 )}
               />
               {errors.experience && (
-                <p className="text-sm text-red-500">
-                  {errors.experience.message}
-                </p>
+                <p className="text-sm text-red-500">{errors.experience.message}</p>
               )}
             </div>
 
             {/* Education */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Education</h3>
-              <Controller
-                name="education"
-                control={control}
-                render={({ field }) => (
-                  <EntryForm
-                    type="Education"
-                    entries={field.value}
-                    onChange={field.onChange}
-                  />
+              <Controller name="education" control={control} render={({ field }) => (
+                  <EntryForm type="Education" entries={field.value}onChange={field.onChange}/>
                 )}
               />
               {errors.education && (
-                <p className="text-sm text-red-500">
-                  {errors.education.message}
-                </p>
+                <p className="text-sm text-red-500">{errors.education.message}</p>
               )}
             </div>
 
             {/* Projects */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Projects</h3>
-              <Controller
-                name="projects"
-                control={control}
-                render={({ field }) => (
-                  <EntryForm
-                    type="Project"
-                    entries={field.value}
-                    onChange={field.onChange}
-                  />
+              <Controller name="projects" control={control} render={({ field }) => (
+                  <EntryForm type="Project" entries={field.value} onChange={field.onChange}/>
                 )}
               />
               {errors.projects && (
-                <p className="text-sm text-red-500">
-                  {errors.projects.message}
-                </p>
+                <p className="text-sm text-red-500">{errors.projects.message}</p>
               )}
             </div>
           </form>
@@ -320,15 +275,9 @@ export default function ResumeBuilder({ initialContent }) {
 
         <TabsContent value="preview">
           {activeTab === "preview" && (
-            <Button
-              variant="link"
-              type="button"
-              className="mb-2"
-              onClick={() =>
-                setResumeMode(resumeMode === "preview" ? "edit" : "preview")
-              }
-            >
-              {resumeMode === "preview" ? (
+            <Button variant="link" type="button" className="mb-2"
+              onClick={()=>setResumeMode(resumeMode === "preview" ? "edit" : "preview")}>
+              {resumeMode==="preview" ? (
                 <>
                   <Edit className="h-4 w-4" />
                   Edit Resume
@@ -345,28 +294,16 @@ export default function ResumeBuilder({ initialContent }) {
           {activeTab === "preview" && resumeMode !== "preview" && (
             <div className="flex p-3 gap-2 items-center border-2 border-yellow-600 text-yellow-600 rounded mb-2">
               <AlertTriangle className="h-5 w-5" />
-              <span className="text-sm">
-                You will lose editied markdown if you update the form data.
-              </span>
+              <span className="text-sm">You will lose editied markdown if you update the form data.</span>
             </div>
           )}
           <div className="border rounded-lg">
-            <MDEditor
-              value={previewContent}
-              onChange={setPreviewContent}
-              height={800}
-              preview={resumeMode}
-            />
+            <MDEditor value={previewContent} onChange={setPreviewContent} height={800} preview={resumeMode}/>
           </div>
           <div className="hidden">
             <div id="resume-pdf">
-              <MDEditor.Markdown
-                source={previewContent}
-                style={{
-                  background: "white",
-                  color: "black",
-                }}
-              />
+              <MDEditor.Markdown source={previewContent}
+                style={{background:"white",color:"black",}}/>
             </div>
           </div>
         </TabsContent>

@@ -2,7 +2,10 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import Groq from "groq-sdk";
 import { db } from "@/lib/prisma";
+
+const groq = new Groq();
 
 export async function saveResume(content){
     const {userId}=await auth();
@@ -57,6 +60,10 @@ export async function improveWithAI({ current, type }) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY is not configured");
+  }
+
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
     include: {
@@ -83,10 +90,12 @@ export async function improveWithAI({ current, type }) {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const improvedContent = response.text().trim();
-    return improvedContent;
+    const result = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "user", content: prompt }],
+    });
+    const improvedContent = result.choices[0].message?.content || "";
+    return improvedContent.trim();
   } catch (error) {
     console.error("Error improving content:", error);
     throw new Error("Failed to improve content");

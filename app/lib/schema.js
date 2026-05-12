@@ -34,33 +34,39 @@ export const contactSchema = z.object({
   twitter: z.string().optional(),
 });
 
+export const entrySchema = z
+  .object({
+    title: z.string().min(1, "Title is required"),
+    organization: z.string().min(1, "Organization is required"),
+    startDate: z.string().min(1, "Start date is required"),
+    endDate: z.string().optional(),
+    description: z.string().min(1, "Description is required"),
+    current: z.boolean().default(false),
+  })
+  .refine(
+    (data) => {
+      if (!data.current && !data.endDate) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "End date is required unless this is your current position",
+      path: ["endDate"],
+    }
+  );
+
 export const resumeSchema = z.object({
   contactInfo: contactSchema,
-  summary: z.string().min(10, "Please provide a professional summary"),
-  skills: z.string().min(10, "Please list your skills"),
-  experience: z.array(
-    z.object({
-      company: z.string().min(1, "Company is required"),
-      role: z.string().min(1, "Role is required"),
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
-      description: z.string().optional(),
-    })
-  ),
-  education: z.array(
-    z.object({
-      school: z.string().min(1, "School is required"),
-      degree: z.string().min(1, "Degree is required"),
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
-      description: z.string().optional(),
-    })
-  ),
-  projects: z.array(
-    z.object({
-      title: z.string().min(1, "Project title is required"),
-      link: z.string().url("Project link must be a valid URL").optional(),
-      description: z.string().optional(),
-    })
-  ),
+  summary: z.string().min(1, "Professional summary is required"),
+  skills: z.string().min(1, "Skills are required"),
+  experience: z.array(entrySchema),
+  education: z.array(entrySchema),
+  projects: z.array(entrySchema),
+});
+
+export const coverLetterSchema = z.object({
+  companyName: z.string().min(1, "Company name is required"),
+  jobTitle: z.string().min(1, "Job title is required"),
+  jobDescription: z.string().min(1, "Job description is required"),
 });
