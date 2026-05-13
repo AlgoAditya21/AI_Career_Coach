@@ -73,32 +73,43 @@ export const generateAIInsights = async (industry) => {
 };
 
 export async function getIndustryInsights() {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      // Not authenticated — return default insights so the dashboard can render gracefully
+      return await generateAIInsights("General");
+    }
 
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-    include: {
-      industryInsight: true,
-    },
-  });
-
-  if (!user) throw new Error("User not found");
-
-  // If no insights exist, generate them
-  if (!user.industryInsight) {
-    const insights = await generateAIInsights(user.industry);
-
-    const industryInsight = await db.industryInsight.create({
-      data: {
-        industry: user.industry,
-        ...insights,
-        nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+      include: {
+        industryInsight: true,
       },
     });
 
-    return industryInsight;
-  }
+    if (!user) {
+      return await generateAIInsights("General");
+    }
 
-  return user.industryInsight;
+    // If no insights exist, generate them
+    if (!user.industryInsight) {
+      const insights = await generateAIInsights(user.industry || "General");
+
+      const industryInsight = await db.industryInsight.create({
+        data: {
+          ...insights,
+          industry: user.industry || "General",
+          nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+      });
+
+      return industryInsight;
+    }
+
+    return user.industryInsight;
+  } catch (error) {
+    // Log error and return default insights to avoid server rendering failure
+    console.error("Error getting industry insights:", error?.message || error);
+    return await generateAIInsights("General");
+  }
 }

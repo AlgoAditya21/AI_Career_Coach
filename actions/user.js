@@ -26,12 +26,13 @@ export async function updateUser(data){
 
         // If it doesn't exist, create it with default values
         if(!industryInsight){
-          const insights = await generateAIInsights(data.industry);
+          const fallbackIndustry = data.industry || user.industry || "General";
+          const insights = await generateAIInsights(fallbackIndustry);
           
               industryInsight = await db.industryInsight.create({
                 data: {
-                  industry: data.industry,
                   ...insights,
+                  industry: fallbackIndustry,
                   nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                 },
               });
@@ -70,27 +71,22 @@ export async function updateUser(data){
 
 
 export async function getUserOnboardingStatus() {
-  const {userId}=await auth();
-  if(!userId) throw new Error("Unauthorized");
-  const user=await db.user.findUnique({
-    where:{clerkUserId:userId},
-  });
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      // Not signed in — treat as not onboarded so the app can redirect to sign-in/onboarding flow client-side
+      return { isOnboarded: false };
+    }
 
-  if(!user) throw new Error("User not found");
-  try{
-    const user=await db.user.findUnique({
-      where:{
-        clerkUserId: userId,
-      },
-      select:{
-        industry:true,
-      },
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+      select: { industry: true },
     });
-    return{
-      isOnboarded: !!user?.industry,
-    };
-  }catch(error){
-    console.error("Error checking onboarding status:",error);
-    throw new Error("Failed to check onboarding status");
+
+    return { isOnboarded: !!user?.industry };
+  } catch (error) {
+    // Log error but avoid throwing to prevent server-component rendering crash in production
+    console.error("Error checking onboarding status:", error?.message || error);
+    return { isOnboarded: false };
   }
 }
