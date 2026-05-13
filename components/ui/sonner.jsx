@@ -32,12 +32,16 @@ const Toaster = ({
           "--normal-bg": "var(--popover)",
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)"
+          "--border-radius": "var(--radius)",
+          "--success-bg": "#10b981",
+          "--success-text": "#ffffff",
+          "--success-border": "#059669"
         }
       }
       toastOptions={{
         classNames: {
           toast: "cn-toast",
+          success: "bg-green-500 border-green-600",
         },
       }}
       {...props} />

@@ -4,6 +4,7 @@ import ThemeProvider from "@/components/theme-provider-client";
 import Header from "@/components/header";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter=Inter({subsets:["latin"]})
 
@@ -36,6 +37,7 @@ export default function RootLayout({ children }) {
                 <p>Made with ❤️ by Parth</p>
               </div>
             </footer>
+            <Toaster position="bottom-right" richColors />
           </ThemeProvider></body>
     </html>
     </ClerkProvider>

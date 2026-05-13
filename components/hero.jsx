@@ -36,8 +36,8 @@ const HeroSection=()=>{
           <Link href="/dashboard">
             <Button size="lg" className="px-8">Get Started</Button>
           </Link>
-          <Link href="https://www.youtube.com/roadsidecoder">
-            <Button size="lg" variant="outline" className="px-8">Watch Demo</Button>
+          <Link href="https://github.com/AlgoAditya21" target="_blank" rel="noopener noreferrer">
+            <Button size="lg" variant="outline" className="px-8">My works</Button>
           </Link>
         </div>
         <div className="hero-image-wrapper mt-5 md:mt-0">

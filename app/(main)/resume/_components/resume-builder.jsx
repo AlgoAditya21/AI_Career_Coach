@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import MDEditor from "@uiw/react-md-editor";
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -101,16 +103,50 @@ export default function ResumeBuilder({ initialContent }) {
         throw new Error("Resume element not found for PDF generation.");
       }
 
+      // We extract the raw HTML and wrap it in a clean format
+      const htmlContent = element.innerHTML;
+      const cleanHtml = `
+        <div style="font-family: Arial, sans-serif; color: #000000; background-color: #ffffff; line-height: 1.6; padding: 20px;">
+          <style>
+            h1, h2, h3, h4, h5, h6 { color: #000000; margin-top: 1em; margin-bottom: 0.5em; }
+            p { margin-bottom: 1em; }
+            ul, ol { margin-bottom: 1em; padding-left: 20px; }
+            a { color: #0066cc; text-decoration: none; }
+          </style>
+          ${htmlContent}
+        </div>
+      `;
+
       const { default: html2pdf } = await import("html2pdf.js");
       const opt = {
-        margin: [15, 15],
+        margin: [10, 10],
         filename: "resume.pdf",
         image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          onclone: (doc) => {
+            // Force ALL elements in the cloned document to use safe colors.
+            // This prevents html2canvas from crashing when parsing Tailwind v4's oklch()/lab() variables.
+            const style = doc.createElement("style");
+            style.innerHTML = `
+              * {
+                color: #000000 !important;
+                background-color: transparent !important;
+                border-color: #000000 !important;
+                text-decoration-color: #000000 !important;
+              }
+              body, html {
+                background-color: #ffffff !important;
+              }
+            `;
+            doc.head.appendChild(style);
+          }
+        },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       };
 
-      await html2pdf().set(opt).from(element).save();
+      await html2pdf().set(opt).from(cleanHtml).save();
     } catch (error) {
       console.error("PDF generation error:", error);
     } finally {
@@ -137,7 +173,7 @@ export default function ResumeBuilder({ initialContent }) {
       <div className="flex flex-col md:flex-row justify-between items-center gap-2">
         <h1 className="font-bold gradient-title text-5xl md:text-6xl">Resume Builder</h1>
         <div className="space-x-2">
-          <Button variant="destructive" onClick={handleSubmit(onSubmit)}disabled={isSaving}>
+          <Button onClick={onSubmit} disabled={isSaving}>
             {isSaving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -150,15 +186,15 @@ export default function ResumeBuilder({ initialContent }) {
               </>
             )}
           </Button>
-          <Button onClick={generatePDF} disabled={isGenerating}>
+          <Button variant="destructive" onClick={generatePDF} disabled={isGenerating}>
             {isGenerating ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Generating PDF...
               </>
             ) : (
               <>
-                <Download className="h-4 w-4" />
+                <Download className="mr-2 h-4 w-4" />
                 Download PDF
               </>
             )}
@@ -276,7 +312,7 @@ export default function ResumeBuilder({ initialContent }) {
         <TabsContent value="preview">
           {activeTab === "preview" && (
             <Button variant="link" type="button" className="mb-2"
-              onClick={()=>setResumeMode(resumeMode === "preview" ? "edit" : "preview")}>
+              onClick={()=>setResumeMode(resumeMode==="preview" ? "edit" : "preview")}>
               {resumeMode==="preview" ? (
                 <>
                   <Edit className="h-4 w-4" />
@@ -300,14 +336,16 @@ export default function ResumeBuilder({ initialContent }) {
           <div className="border rounded-lg">
             <MDEditor value={previewContent} onChange={setPreviewContent} height={800} preview={resumeMode}/>
           </div>
-          <div className="hidden">
-            <div id="resume-pdf">
-              <MDEditor.Markdown source={previewContent}
-                style={{background:"white",color:"black",}}/>
-            </div>
-          </div>
+          {/* The visible preview is above. Render an off-screen copy of the
+              markdown for PDF generation so it's always present in the DOM
+              even when the user is on the edit tab. Positioned off-screen
+              rather than `display: none` so html2pdf can render it. */}
         </TabsContent>
       </Tabs>
+      {/* Off-screen PDF render target */}
+      <div id="resume-pdf" className="hidden">
+        <ReactMarkdown rehypePlugins={[rehypeRaw]}>{previewContent}</ReactMarkdown>
+      </div>
     </div>
   );
 }
